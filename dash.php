@@ -47,7 +47,7 @@ function verificarAcceso($user_type, $paginasPermitidas) {
 $paginasPermitidas = [
     'Admin' => ['inicioa.php', 'gestionar_usuarios.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
     'Administrador' => ['inicioa.php', 'gestionar_usuarios.php', 'seguros.php', 'camion.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
-    'Contabilidad' => ['gestionar_cotizacion.php', 'clientes.php', 'seguros.php', 'cotizacion.php', 'rutas.php', 'camion.php', 'alta_cliente.php', 'facturas.php', 'gestionar_facturas.php', 'remolque.php', 'index.php', 'viaje.php', 'cliente.php', 'gestion_camiones.php'],
+    'Contabilidad' => ['gestionar_cotizacion.php', 'clientes.php', 'dolly.php', 'infoc.php', 'seguros.php', 'cotizacion.php', 'cotizaciont.php', 'rutas.php', 'camion.php', 'alta_cliente.php', 'facturas.php', 'gestionar_facturas.php', 'remolque.php', 'index.php', 'viaje.php', 'cliente.php', 'gestion_camiones.php'],
     'Recursos Humanos' => ['index.php', 'inicio.php', 'seguros.php', 'gestionar_empleados.php', 'registrar_empleado.php'],
     'Operador' => ['index.php', 'viaje.php'],
     'Cliente' => ['cliente_viajes.php', 'consultar_facturas.php'],
@@ -127,146 +127,53 @@ function generarSubmenu($titulo, $items) {
     $submenu .= "</div>";
     return $submenu;
 }
+// Truck management logic
+function gestionarCamiones($conn) {
+    $per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+    $sort = isset($_GET['sort']) ? $_GET['sort'] : 'ID_Camion';
+    $order = isset($_GET['order']) && strtoupper($_GET['order']) === 'ASC' ? 'ASC' : 'DESC';
+    $search = isset($_GET['search']) ? $_GET['search'] : '';
+
+    $offset = ($page - 1) * $per_page;
+
+    // Fetch trucks
+    $sql = "SELECT c.*, e.Nombre as NombreEmpleado 
+            FROM camion c 
+            LEFT JOIN empleado e ON c.Fk_id_Emplado = e.ID_Empleado
+            WHERE c.Placas LIKE :search OR c.Tipo LIKE :search
+            ORDER BY $sort $order
+            LIMIT :per_page OFFSET :offset";
+
+    $stmt = $conn->prepare($sql);
+    $search_term = "%$search%";
+    $stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
+    $stmt->bindValue(':per_page', $per_page, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+    $camiones = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Get total count for pagination
+    $total_sql = "SELECT COUNT(*) as total 
+                  FROM camion 
+                  WHERE Placas LIKE :search OR Tipo LIKE :search";
+    $total_stmt = $conn->prepare($total_sql);
+    $total_stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
+    $total_stmt->execute();
+    $total_records = $total_stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    $total_pages = ceil($total_records / $per_page);
+
+    return [
+        'camiones' => $camiones,
+        'total_pages' => $total_pages,
+        'current_page' => $page,
+        'per_page' => $per_page,
+        'total_records' => $total_records,
+        'sort' => $sort,
+        'order' => $order,
+        'search' => $search
+    ];
+}
+$truckData = gestionarCamiones($conn);
 
 ?>
-
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo $pageTitle ?? 'Dashboard'; ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
-    <link rel="stylesheet" href="assets/css/diseño.css">
-    <link rel="stylesheet" href="assets/css/dashboard.css">
-    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js" crossorigin="anonymous"></script>
-</head>
-<body>
-    <aside class="sidebar" id="sidebar">
-        <div class="logo">
-            <img src="assets/img/1.png" alt="Logo">
-            <span class="logo-text"></span>
-        </div>
-
-        <div class="welcome-message">
-            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
-        </div>
-
-        <nav class="nav-section">
-            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
-            <?php echo generarMenu($user_type); ?>
-        </nav>
-    </aside>
-
-    <main class="main-content">
-        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
-            <div class="top-bar">
-                <div class="top-actions">
-                    <div class="notifications-dropdown">
-                        <button class="btn btn-secondary" onclick="toggleNotifications()">
-                            <span>🔔</span>
-                        </button>
-                        <div class="notifications-panel" id="notificationsPanel">
-                            <div class="user-menu-item">No tienes mensajes sin leer</div>
-                            <div class="user-menu-item">Ver todas</div>
-                        </div>
-                    </div>
-
-                    <div class="user-menu">
-                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
-                            <span>👤</span>
-                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
-                        </button>
-                        <div class="user-dropdown" id="userDropdown">
-                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
-                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </nav>
-
-
-        <div class="dashboard-content">
-            <!-- El contenido específico de cada página se insertará aquí -->
-            <?php if (isset($pageContent)) echo $pageContent; ?>
-        </div>
-    </main>
-
-    <script>
-        function toggleNotifications() {
-            document.getElementById('notificationsPanel').classList.toggle('active');
-        }
-
-        function toggleUserMenu() {
-            document.getElementById('userDropdown').classList.toggle('active');
-        }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle('dark-mode');
-        }
-
-        function logout() {
-            window.location.href = 'cerrar_sesion.php';
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const navItems = document.querySelectorAll('.nav-item');
-
-            navItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    if (item.querySelector('.nav-arrow')) {
-                        e.stopPropagation();
-                        item.classList.toggle('expanded');
-                    }
-                });
-            });
-
-            sidebar.addEventListener('click', (e) => {
-                if (e.target === sidebar || e.target.classList.contains('logo')) {
-                    sidebar.classList.toggle('pinned');
-                }
-            });
-
-            sidebar.addEventListener('mouseleave', () => {
-                if (!sidebar.classList.contains('pinned')) {
-                    navItems.forEach(item => item.classList.remove('expanded'));
-                }
-            });
-
-            document.addEventListener('click', (e) => {
-                const isClickInsideSidebar = sidebar.contains(e.target);
-                const isClickInsideNotifications = document.querySelector('.notifications-dropdown').contains(e.target);
-                const isClickInsideUserMenu = document.querySelector('.user-menu').contains(e.target);
-
-                if (!isClickInsideSidebar && !isClickInsideNotifications && !isClickInsideUserMenu) {
-                    sidebar.classList.remove('active');
-                    document.getElementById('notificationsPanel').classList.remove('active');
-                    document.getElementById('userDropdown').classList.remove('active');
-                }
-            });
-        });
-
-        let inactivityTime = function () {
-            let time;
-            window.onload = resetTimer;
-            document.onmousemove = resetTimer;
-            document.onkeypress = resetTimer;
-
-            function logout() {
-                alert("Se cerrará la sesión por inactividad.");
-                window.location.href = 'cerrar_sesion.php';
-            }
-
-            function resetTimer() {
-                clearTimeout(time);
-                time = setTimeout(logout, 30000000);
-            }
-        };
-
-        inactivityTime();
-    </script>
-</body>
-</html>

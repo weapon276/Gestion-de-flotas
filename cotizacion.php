@@ -1,14 +1,5 @@
 <?php
-include 'modelo/conexion.php';
-
-session_start();
-
-if (!isset($_SESSION['userType'])) {
-    header("Location: login.php");
-    exit();
-}
-
-$usuario_id = $_SESSION['userId'];
+require 'dash.php';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -16,28 +7,67 @@ $usuario_id = $_SESSION['userId'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cotización</title>
-
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/dash.js"></script>
+    <script src="assets/js/cotizacion.js"></script>
+    <link rel="stylesheet" href="assets/css/diseño.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/cotizacion.css">
     <link rel="stylesheet" href="assets/css/rservicios.css">
-    <script src="assets/js/cotizacion.js"></script>
-</head>   
-<style>
-     
-    </style>
-<body>  
-    
-     <header class="header">
-            <h1 class="title">Cotización #1234</h1>
-            <button class="edit-button" id="editButton">Editar</button>
+</head>
+<body>
+                  <!-- Informacion del dashboard -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/1.png" alt="Logo">
+            <span class="logo-text"></span>
         </div>
-        
-        </header>
-        
+
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1 class="title">Cotización #1234</h1>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+                       <!-- Fin -->
+
         <div class="main-content">
             <div class="left-column">
 
+            <button class="edit-button" id="editButton">Editar</button>
                 <div class="quote-details">
                     <div class="section-header">
                     <span class="detail-label">Fecha y hora:</span>

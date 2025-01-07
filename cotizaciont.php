@@ -1,49 +1,9 @@
+
 <?php
-require_once 'modelo/conexion.php';
-
-$per_page = $_GET['per_page'] ?? 10;
-$page = $_GET['page'] ?? 1;
-$search = $_GET['search'] ?? '';
-$sort = $_GET['sort'] ?? 'ID_Cotizacion';
-$order = $_GET['order'] ?? 'DESC';
-
-$allowed_sort_columns = ['ID_Cotizacion', 'NombreCliente', 'NombreEmpleado'];
-$allowed_order = ['ASC', 'DESC'];
-
-$sort = in_array($sort, $allowed_sort_columns) ? $sort : 'ID_Cotizacion';
-$order = in_array(strtoupper($order), $allowed_order) ? strtoupper($order) : 'DESC';
-
-$offset = ($page - 1) * $per_page;
-
-// Consulta principal
-$sql = "SELECT c.*, cl.Nombre as NombreCliente, e.Nombre as NombreEmpleado 
-        FROM cotizacion c 
-        LEFT JOIN cliente cl ON c.ID_Cliente = cl.ID_Cliente 
-        LEFT JOIN empleado e ON c.fk_idEmpleado = e.ID_Empleado 
-        WHERE cl.Nombre LIKE :search OR c.ID_Cotizacion LIKE :search
-        ORDER BY $sort $order 
-        LIMIT :per_page OFFSET :offset";
-
-$stmt = $conn->prepare($sql);
-$search_term = "%$search%";
-$stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
-$stmt->bindValue(':per_page', (int)$per_page, PDO::PARAM_INT);
-$stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-$stmt->execute();
-$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$total_sql = "SELECT COUNT(*) as total 
-              FROM cotizacion c 
-              LEFT JOIN cliente cl ON c.ID_Cliente = cl.ID_Cliente 
-              WHERE cl.Nombre LIKE :search OR c.ID_Cotizacion LIKE :search";
-
-$total_stmt = $conn->prepare($total_sql);
-$total_stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
-$total_stmt->execute();
-$total_records = $total_stmt->fetch(PDO::FETCH_ASSOC)['total'];
-$total_pages = ceil($total_records / $per_page);
-
-
+require 'controlador/cotizaciont.php';
+?>
+<?php
+require 'dash.php';
 ?>
 
 <!DOCTYPE html>
@@ -53,12 +13,64 @@ $total_pages = ceil($total_records / $per_page);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de Cotizaciones</title>
     <link rel="stylesheet" href="assets/css/cotizaciont.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="assets/js/dash.js"></script>
+    <script src="assets/js/cotizaciont.js"></script>
+    <link rel="stylesheet" href="assets/css/diseño.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="stylesheet" href="assets/css/rservicios.css">
 
 </head>
 <body>
-    <div class="container">
+                      <!-- Informacion del dashboard -->
+                      <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/1.png" alt="Logo">
+            <span class="logo-text"></span>
+        </div>
+
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1 class="title">Listado de cotizaciones</h1>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+                       <!-- Fin -->
         <div class="header">
-            <h1 class="title">Listado de cotizaciones</h1>
             <div class="actions">
                 <button class="btn btn-secondary">Filtros</button>
                 <a href="cotizacion.php" class="btn btn-primary">Nueva</a>
@@ -130,46 +142,5 @@ $total_pages = ceil($total_records / $per_page);
             </div>
         </div>
     </div>
-
-    <script>
-        document.querySelectorAll('th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => {
-                const sortBy = th.dataset.sort;
-                const isAsc = !th.classList.contains('sorted-asc');
-                
-                document.querySelectorAll('th').forEach(header => {
-                    header.classList.remove('sorted-asc', 'sorted-desc');
-                });
-                
-                th.classList.add(isAsc ? 'sorted-asc' : 'sorted-desc');
-                
-   
-            });
-        });
-
-        const searchInput = document.querySelector('.search-input');
-        let searchTimeout;
-        
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-        
-            }, 500);
-        });
-
-        document.querySelector('.records-per-page select').addEventListener('change', (e) => {
-      
-        });
-
-        document.querySelectorAll('.pagination-controls .page-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                if (!btn.classList.contains('active')) {
-                    document.querySelector('.page-btn.active').classList.remove('active');
-                    btn.classList.add('active');
-          
-                }
-            });
-        });
-    </script>
 </body>
 </html>

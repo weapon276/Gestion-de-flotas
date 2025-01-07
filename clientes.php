@@ -1,6 +1,8 @@
 <?php
 include 'modelo/conexion.php';
 
+
+
 function obtenerClientes($conn) {
     $sql = "SELECT c.*, 
                    (SELECT SUM(monto) FROM factura WHERE ID_Cliente = c.ID_Cliente) AS Factura,
@@ -46,6 +48,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id_factura'])) {
     exit;
 }
 ?>
+<?php
+include 'dash.php';
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -57,22 +63,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id_factura'])) {
     <link rel="stylesheet" href="assets/css/clientes.css">
     <link rel="stylesheet" href="assets/css/servicios.css">
     <link rel="stylesheet" href="assets/css/modal.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/diseño.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <script src="assets/js/clientes.js"></script>
+    <script src="assets/js/dash.js"></script>
+
+
 </head>
 <body>
-    <main class="main-content">
-        <div class="header animate-fade-in">
-            <h1 class="title">Catálogo de clientes</h1>
-            <div class="header-actions">
-                <button class="btn btn-primary" onclick="openModal(null)">
-                    <span>Nuevo</span>
-                </button>
-            </div>
+<aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/andug.jpg" alt="Logo">
+            <span class="logo-text"></span>
         </div>
 
-        <div class="search-bar animate-slide-in">
-            <input type="text" class="search-input" placeholder="Buscar..." onkeyup="searchClients()">
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
         </div>
-        <div class="table-container animate-slide-in">
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1 class="title">Gestión de Clientes</h1>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <div class="header animate-fade-in">
+
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Filtros</button>
+                    <button class="btn btn-primary" onclick="showModal('addTruckModal')">Nuevo Cliente</button>
+                </div>
+            </div>
+
+            <div class="search-bar animate-slide-in">
+                <input type="text" class="search-input" placeholder="Buscar cliente..." 
+                       value="<?php echo htmlspecialchars($truckData['search']); ?>" id="searchInput">
+                <button class="btn btn-primary" onclick="searchTrucks()">Buscar</button>
+            </div>
+
+            <div class="table-container animate-fade-in">
             <table>
                 <thead>
                     <tr>
@@ -231,82 +291,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['id_factura'])) {
                 <button class="btn btn-primary" onclick="saveClient()">Guardar</button>
             </div>
         </div>
-    </div>
-    <script>
-        function toggleLoading(button) {
-            button.classList.add('loading');
-            setTimeout(() => {
-                button.classList.remove('loading');
-            }, 2000);
-        }
-        function openModal(cliente) {
-            const modal = document.getElementById('clienteModal');
-            const form = document.getElementById('clienteForm');
-            const modalTitle = document.getElementById('modalTitle');
-            if (cliente) {
-                modalTitle.textContent = 'Editando al cliente';
-                Object.keys(cliente).forEach(key => {
-                    const field = document.getElementById(key);
-                    if (field) {
-                        field.value = cliente[key];
-                    }
-                });
-            } else {
-                modalTitle.textContent = 'Nuevo cliente';
-                form.reset();
-            }
-            toggleCreditoFields();
-            modal.style.display = 'block';
-        }
-        function closeModal() {
-            const modal = document.getElementById('clienteModal');
-            modal.style.display = 'none';
-        }
-        function saveClient() {
-            const form = document.getElementById('clienteForm');
-            if (form.checkValidity()) {
-                const formData = new FormData(form);
-                console.log('Saving client:', Object.fromEntries(formData));
-                closeModal();
-            } else {
-                form.reportValidity();
-            }
-        }
-        function deleteClient(clientId) {
-            if (confirm('¿Está seguro de que desea eliminar este cliente?')) {
-                console.log('Deleting client:', clientId);
-            }
-        }
-        function toggleCreditoFields() {
-            const tipoCredito = document.getElementById('TipoCredito');
-            const lineaCreditoGroup = document.getElementById('lineaCreditoGroup');
-            const diasCreditoGroup = document.getElementById('diasCreditoGroup');
-            if (tipoCredito.value === 'Limitado') {
-                lineaCreditoGroup.style.display = 'block';
-                diasCreditoGroup.style.display = 'block';
-            } else {
-                lineaCreditoGroup.style.display = 'none';
-                diasCreditoGroup.style.display = 'none';
-            }
-        }
-        function searchClients() {
-            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                if (text.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-        function changePage(direction) {
-            console.log('Changing page:', direction);
-        }
-        document.getElementById('TipoCredito').addEventListener('change', toggleCreditoFields);
-        document.querySelector('.search-input').addEventListener('input', searchClients);
-        toggleCreditoFields();
-    </script>
+    </div>     
 </body>
 </html>

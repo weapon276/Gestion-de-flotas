@@ -1,150 +1,5 @@
 <?php
-require_once 'modelo/conexion.php';
-
-
-$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'ID_Camion';
-$order = isset($_GET['order']) && strtoupper($_GET['order']) === 'ASC' ? 'ASC' : 'DESC';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-
-$offset = ($page - 1) * $per_page;
-
-$sql = "SELECT c.*, e.Nombre as NombreEmpleado 
-        FROM camion c 
-        LEFT JOIN empleado e ON c.Fk_id_Emplado = e.ID_Empleado
-        WHERE c.Placas LIKE :search OR c.Tipo LIKE :search
-        ORDER BY $sort $order
-        LIMIT :per_page OFFSET :offset";
-
-$stmt = $conn->prepare($sql);
-$search_term = "%$search%";
-$stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
-$stmt->bindValue(':per_page', (int)$per_page, PDO::PARAM_INT);
-$stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-$stmt->execute();
-$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-$total_sql = "SELECT COUNT(*) as total 
-              FROM camion 
-              WHERE Placas LIKE :search OR Tipo LIKE :search";
-
-$total_stmt = $conn->prepare($total_sql);
-$total_stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
-$total_stmt->execute();
-$total_records = $total_stmt->fetch(PDO::FETCH_ASSOC)['total'];
-$total_pages = ceil($total_records / $per_page);
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['agregar_camion'])) {
-        $placas = $_POST['placas'];
-        $peso = $_POST['peso'];
-        $unidad = $_POST['unidad'];
-        $tipo = $_POST['tipo'];
-        $poliza_seguro = $_POST['poliza_seguro'];
-        $gps = $_POST['gps'];
-
-        $sql = "INSERT INTO camion (Placas, Peso, Unidad, Tipo, Poliza_Seguro, GPS, Status, fecha_inicio) 
-                VALUES (:placas, :peso, :unidad, :tipo, :poliza_seguro, :gps, 'Libre', NOW())";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':placas', $placas);
-        $stmt->bindParam(':peso', $peso);
-        $stmt->bindParam(':unidad', $unidad);
-        $stmt->bindParam(':tipo', $tipo);
-        $stmt->bindParam(':poliza_seguro', $poliza_seguro);
-        $stmt->bindParam(':gps', $gps);
-        $stmt->execute();
-
-        $mensaje = 'Camión agregado con éxito.';
-        $tipo_mensaje = 'success';
-    } elseif (isset($_POST['modificar_camion'])) {
-        $id_camion = $_POST['id_camion'];
-        $placas = $_POST['placas'];
-        $peso = $_POST['peso'];
-        $unidad = $_POST['unidad'];
-        $tipo = $_POST['tipo'];
-        $poliza_seguro = $_POST['poliza_seguro'];
-        $gps = $_POST['gps'];
-
-        $sql = "UPDATE camion 
-                SET Placas = :placas, Peso = :peso, Unidad = :unidad, Tipo = :tipo, Poliza_Seguro = :poliza_seguro, GPS = :gps
-                WHERE ID_Camion = :id_camion";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':placas', $placas);
-        $stmt->bindParam(':peso', $peso);
-        $stmt->bindParam(':unidad', $unidad);
-        $stmt->bindParam(':tipo', $tipo);
-        $stmt->bindParam(':poliza_seguro', $poliza_seguro);
-        $stmt->bindParam(':gps', $gps);
-        $stmt->bindParam(':id_camion', $id_camion);
-        $stmt->execute();
-
-        $mensaje = 'Camión modificado con éxito.';
-        $tipo_mensaje = 'success';
-    } elseif (isset($_POST['accion_camion'])) {
-        $id_camion = $_POST['id_camion'];
-        $comentario = $_POST['comentario'];
-        $accion = $_POST['accion_camion'];
-
-        if ($accion === 'suspender') {
-            $status = 'Suspendido';
-        } elseif ($accion === 'dar_de_baja') {
-            $status = 'Baja';
-        } elseif ($accion === 'mantenimiento') {
-            $status = 'Mantenimiento';
-        }
-
-        $sql = "UPDATE camion 
-                SET Status = :status, fecha_final = NOW()
-                WHERE ID_Camion = :id_camion";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':status', $status);
-        $stmt->bindParam(':id_camion', $id_camion);
-        $stmt->execute();
-
-        $sql_comentario = "INSERT INTO comentarios_camion (ID_Camion, Comentario) VALUES (:id_camion, :comentario)";
-        $stmt_comentario = $conn->prepare($sql_comentario);
-        $stmt_comentario->bindParam(':id_camion', $id_camion);
-        $stmt_comentario->bindParam(':comentario', $comentario);
-        $stmt_comentario->execute();
-
-        $mensaje = 'Acción realizada con éxito.';
-        $tipo_mensaje = 'success';
-    }
-}
-
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion_camion']) && $_POST['accion_camion'] === 'mantenimiento') {
-    $id_camion = $_POST['id_camion'];
-    $comentario = $_POST['comentario'];
-    $fecha_inicio = $_POST['fecha_inicio'];
-    
-    $fecha_fin = isset($_POST['fecha_fin']) ? $_POST['fecha_fin'] : NULL;
-
-    $sql = "UPDATE camion 
-            SET Status = 'Mantenimiento', FechaIM = :fecha_inicio, FechaFM = :fecha_fin, ComentarioMantenimiento = :comentario
-            WHERE ID_Camion = :id_camion";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':fecha_inicio', $fecha_inicio);
-    $stmt->bindParam(':fecha_fin', $fecha_fin, PDO::PARAM_STR); 
-    $stmt->bindParam(':comentario', $comentario);
-    $stmt->bindParam(':id_camion', $id_camion);
-    
-    try {
-        $stmt->execute();
-        header("Location: gestionar_camiones.php?success=1");
-        exit();
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage(); 
-    }
-}
-
-$sql_disponibles = "SELECT * FROM camion WHERE Status = 'Libre' OR Status = 'Ocupado' OR Status = 'Mantenimiento'";
-$camiones_disponibles = $conn->query($sql_disponibles)->fetchAll(PDO::FETCH_ASSOC);
-
-$sql_no_activos = "SELECT * FROM camion WHERE Status = 'Suspendido' OR Status = 'Baja'";
-$camiones_no_activos = $conn->query($sql_no_activos)->fetchAll(PDO::FETCH_ASSOC);
-
+require 'dash.php';
 ?>
 
 <!DOCTYPE html>
@@ -152,119 +7,161 @@ $camiones_no_activos = $conn->query($sql_no_activos)->fetchAll(PDO::FETCH_ASSOC)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Listado de Camiones</title>
-    <link rel="stylesheet" href="assets/css/camion.css">
-    
+    <title>Gestión de Camiones</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/diseño.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="assets/js/dash.js"></script>
+    <script src="assets/js/camion.js"></script>
 
+    <style>
+        /* Add any additional styles here */
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="title">Listado de camiones</h1>
-            <div class="actions">
-                <button class="btn btn-secondary">Filtros</button>
-                <a href="" class="btn btn-primary">Nuevo</a>
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/1.png" alt="Logo">
+            <span class="logo-text"></span>
+        </div>
+
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1 class="title">Gestión de Camiones</h1>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <div class="dashboard-content">
+            <div class="header animate-fade-in">
+                <div class="header-actions">
+                    <button class="btn btn-secondary">Filtros</button>
+                    <button class="btn btn-primary" onclick="showModal('addTruckModal')">Nuevo Camión</button>
+                </div>
+            </div>
+
+            <div class="search-bar animate-slide-in">
+                <input type="text" class="search-input" placeholder="Buscar camión..." 
+                       value="<?php echo htmlspecialchars($truckData['search']); ?>" id="searchInput">
+                       <button class="btn btn-primary" onclick="searchTrucks()">Buscar</button>
+   
+            </div>
+
+            <div class="table-container animate-fade-in">
+                <table>
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-truck"></i> Placas</th>
+                            <th><i class="fas fa-weight"></i> Peso</th>
+                            <th><i class="fas fa-box"></i> Unidad</th>
+                            <th><i class="fas fa-tag"></i> Tipo</th>
+                            <th><i class="fas fa-file-contract"></i> Póliza de Seguro</th>
+                            <th><i class="fas fa-satellite"></i> GPS</th>
+                            <th><i class="fas fa-info-circle"></i> Status</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($truckData['camiones'] as $camion): ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($camion['Placas']); ?></td>
+                            <td><?php echo htmlspecialchars($camion['Peso']); ?></td>
+                            <td><?php echo htmlspecialchars($camion['Unidad']); ?></td>
+                            <td><?php echo htmlspecialchars($camion['Tipo']); ?></td>
+                            <td><?php echo htmlspecialchars($camion['Poliza_Seguro']); ?></td>
+                            <td><?php echo htmlspecialchars($camion['GPS']); ?></td>
+                            <td><?php echo htmlspecialchars($camion['Status']); ?></td>
+                            <td>
+                                <button class="btn btn-warning" onclick="showModal('maintenanceTruckModal', <?php echo $camion['ID_Camion']; ?>)">
+                                    <i class="fa fa-tools"></i>
+                                </button>
+                                <button class="btn btn-warning" onclick="showModal('suspendTruckModal', <?php echo $camion['ID_Camion']; ?>)">
+                                    <i class="fa fa-pause"></i>
+                                </button>
+                                <button class="btn btn-danger" onclick="showModal('deactivateTruckModal', <?php echo $camion['ID_Camion']; ?>)">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                                <button class="btn btn-secondary" onclick="showModal('editTruckModal', <?php echo $camion['ID_Camion']; ?>)">
+                                    <i class="fa fa-edit"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination">
+                <div>
+                    Mostrando <?php echo ($truckData['current_page'] - 1) * $truckData['per_page'] + 1; ?> a 
+                    <?php echo min($truckData['current_page'] * $truckData['per_page'], $truckData['total_records']); ?> 
+                    de <?php echo $truckData['total_records']; ?> registros
+                </div>
+                <div class="pagination-controls">
+                    <?php for($i = 1; $i <= $truckData['total_pages']; $i++): ?>
+                        <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($truckData['search']); ?>&sort=<?php echo $truckData['sort']; ?>&order=<?php echo $truckData['order']; ?>" 
+                           class="btn <?php echo $truckData['current_page'] === $i ? 'btn-primary' : 'btn-secondary'; ?>">
+                            <?php echo $i; ?>
+                        </a>
+                    <?php endfor; ?>
+                </div>
             </div>
         </div>
+    </main>
 
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Buscar por placas o tipo..." 
-                   value="<?php echo htmlspecialchars($search); ?>">
-        </div>
-
-        <div class="table-container">
-            <table>
-                <thead>
-                <tr>
-                <th><i class="fas fa-truck"></i> Placas</th>
-                                <th><i class="fas fa-weight"></i> Peso</th>
-                                <th><i class="fas fa-box"></i> Unidad</th>
-                                <th><i class="fas fa-tag"></i> Tipo</th>
-                                <th><i class="fas fa-file-contract"></i> Póliza de Seguro</th>
-                                <th><i class="fas fa-satellite"></i> GPS</th>
-                                <th><i class="fas fa-info-circle"></i> Status</th>
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Final</th>
-                </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                    <?php foreach ($camiones_disponibles as $camion): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($camion['Placas']); ?></td>
-                        <td><?php echo htmlspecialchars($camion['Peso']); ?></td>
-                        <td><?php echo htmlspecialchars($camion['Unidad']); ?></td>
-                        <td><?php echo htmlspecialchars($camion['Tipo']); ?></td>
-                        <td><?php echo htmlspecialchars($camion['Poliza_Seguro']); ?></td>
-                        <td><?php echo htmlspecialchars($camion['GPS']); ?></td>
-                        <td><?php echo htmlspecialchars($camion['Status']); ?></td>
-                        <td><?php echo htmlspecialchars($camion['fecha_inicio']); ?></td>
-                        <td>
-                        <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalMantenimientoCamion" data-id="<?php echo $camion['ID_Camion']; ?>">
-                        <i class="fa fa-tools"></i> 
-                    </button>
-                            <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#modalSuspenderCamion" data-id="<?php echo $camion['ID_Camion']; ?>">
-                                <i class="fa fa-pause"></i>
-                            </button>
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalDarDeBajaCamion" data-id="<?php echo $camion['ID_Camion']; ?>">
-                                <i class="fa fa-trash"></i> 
-                            </button>
-                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#modalModificarCamion" data-id="<?php echo $camion['ID_Camion']; ?>"
-                                data-placas="<?php echo $camion['Placas']; ?>" data-peso="<?php echo $camion['Peso']; ?>" data-unidad="<?php echo $camion['Unidad']; ?>"
-                                data-tipo="<?php echo $camion['Tipo']; ?>" data-poliza_seguro="<?php echo $camion['Poliza_Seguro']; ?>" data-gps="<?php echo $camion['GPS']; ?>">
-                                <i class="fa fa-edit"></i> 
-                            </button>
-                        </td>
-                    </tr>
-                    
-                <?php endforeach; ?>
-
-                        </td>
-
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination">
-            <div>
-                Mostrando <?php echo $offset + 1; ?> a 
-                <?php echo min($offset + $per_page, $total_records); ?> 
-                de <?php echo $total_records; ?> registros
-            </div>
-            <div class="pagination-controls">
-                <?php for($i = 1; $i <= $total_pages; $i++): ?>
-                    <a href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>&sort=<?php echo $sort; ?>&order=<?php echo $order; ?>" 
-                       class="btn <?php echo $page === $i ? 'btn-primary' : 'btn-secondary'; ?>">
-                        <?php echo $i; ?>
-                    </a>
-                <?php endfor; ?>
-            </div>
-        </div>
+    <!-- Modal templates -->
+    <div id="addTruckModal" class="modal">
+        <!-- Add truck form -->
     </div>
 
-    <script>
-        // Búsqueda en tiempo real
-        const searchInput = document.querySelector('.search-input');
-        let searchTimeout;
-        
-        searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                window.location.href = `?search=${e.target.value}&sort=<?php echo $sort; ?>&order=<?php echo $order; ?>`;
-            }, 500);
-        });
+    <div id="editTruckModal" class="modal">
+        <!-- Edit truck form -->
+    </div>
 
-        // Ordenamiento por columnas
-        document.querySelectorAll('th[data-sort]').forEach(th => {
-            th.addEventListener('click', () => {
-                const sortBy = th.dataset.sort;
-                const currentOrder = new URLSearchParams(window.location.search).get('order') || 'DESC';
-                const newOrder = currentOrder === 'ASC' ? 'DESC' : 'ASC';
-                window.location.href = `?sort=${sortBy}&order=${newOrder}&search=<?php echo urlencode($search); ?>`;
-            });
-        });
-    </script>
+    <div id="maintenanceTruckModal" class="modal">
+        <!-- Maintenance form -->
+    </div>
+
+    <div id="suspendTruckModal" class="modal">
+        <!-- Suspend truck form -->
+    </div>
+
+    <div id="deactivateTruckModal" class="modal">
+        <!-- Deactivate truck form -->
+    </div>
 </body>
 </html>

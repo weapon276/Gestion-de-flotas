@@ -45,23 +45,27 @@ $total_pages = ceil($total_records / $per_page);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de Remolques</title>
-    <link rel="stylesheet" href="assets/css/camion.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="assets/css/clientes.css">
+    <link rel="stylesheet" href="assets/css/servicios.css">
+    <link rel="stylesheet" href="assets/css/modal.css">
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="title">Listado de Remolques</h1>
-            <div class="actions">
-                <button class="btn btn-secondary">Filtros</button>
-                <a href="nuevo-remolque.php" class="btn btn-primary">Nuevo</a>
+<main class="main-content">
+        <div class="header animate-fade-in">
+            <h1 class="title">Remolque</h1>
+            <div class="header-actions">
+                 <button class="btn btn-secondary">Filtros</button>
+                <a href="" class="btn btn-primary">Nuevo</a>
             </div>
         </div>
 
-        <div class="search-bar">
-            <input type="text" class="search-input" placeholder="Buscar por placas, tipo o subtipo..." 
-                   value="<?php echo htmlspecialchars($search); ?>">
+        <div class="search-bar animate-slide-in">
+            <input type="text" class="search-input" placeholder="Buscar..." onkeyup="searchClients()">
         </div>
+        <div class="table-container animate-slide-in">
 
         <div class="table-container">
             <table>
