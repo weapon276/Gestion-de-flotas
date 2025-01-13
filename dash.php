@@ -47,7 +47,7 @@ function verificarAcceso($user_type, $paginasPermitidas) {
 $paginasPermitidas = [
     'Admin' => ['inicioa.php', 'gestionar_usuarios.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
     'Administrador' => ['inicioa.php', 'gestionar_usuarios.php', 'seguros.php', 'camion.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
-    'Contabilidad' => ['gestionar_cotizacion.php', 'clientes.php', 'dolly.php', 'infoc.php', 'seguros.php', 'cotizacion.php', 'cotizaciont.php', 'rutas.php', 'camion.php', 'alta_cliente.php', 'facturas.php', 'gestionar_facturas.php', 'remolque.php', 'index.php', 'viaje.php', 'cliente.php', 'gestion_camiones.php'],
+    'Contabilidad' => ['gestionar_cotizacion.php', 'clientes.php', 'servicios.php', 'seguro.php', 'dolly.php', 'infoc.php', 'seguros.php', 'cotizacion.php', 'cotizaciont.php', 'rutas.php', 'camion.php', 'alta_cliente.php', 'facturas.php', 'gestionar_facturas.php', 'remolque.php', 'index.php', 'viaje.php', 'cliente.php', 'gestion_camiones.php'],
     'Recursos Humanos' => ['index.php', 'inicio.php', 'seguros.php', 'gestionar_empleados.php', 'registrar_empleado.php'],
     'Operador' => ['index.php', 'viaje.php'],
     'Cliente' => ['cliente_viajes.php', 'consultar_facturas.php'],

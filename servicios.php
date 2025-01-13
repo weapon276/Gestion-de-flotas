@@ -1,12 +1,21 @@
+<?php
+require 'dash.php';
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Catálogo de Servicios</title>
+    <script src="assets/js/dash.js"></script>
+   <link rel="stylesheet" href="assets/css/diseño.css">
+   <link rel="stylesheet" href="assets/css/dashboard.css">
     <link rel="stylesheet" href="assets/css/servicios.css">
     <link rel="stylesheet" href="assets/css/rservicios.css">
     <link rel="stylesheet" href="assets/css/modal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+   
 
     <style>
         .rutaDetails {
@@ -15,9 +24,52 @@
     </style>
 </head>
 <body>
-     <div class="container">
+    <!-- Informacion del dashboard -->
+ <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/1.png" alt="Logo">
+            <span class="logo-text"></span>
+        </div>
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1 class="title">Servicios</h1>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+                       <!-- Fin -->
+     <div class="containerc">
         <header class="header">
-            <h1 class="title">Servicios</h1>
             <div class="header-actions">
             <button id="btnNuevo" class="btn btn-primary">Nuevo</button>
             </div>
@@ -178,39 +230,5 @@
             </form>
         </div>
     </div>
-
-    <script>
-        const btnNuevo = document.getElementById('btnNuevo');
-        const modalNuevo = document.getElementById('modalNuevo');
-        const btnCerrar = document.getElementById('btnCerrar');
-        const categoriaSelect = document.getElementById('categoria');
-        const rutaDetails = document.getElementById('rutaDetails');
-
-        // Mostrar el modal
-        btnNuevo.addEventListener('click', () => {
-            modalNuevo.style.display = 'flex';
-        });
-
-        // Cerrar el modal
-        btnCerrar.addEventListener('click', () => {
-            modalNuevo.style.display = 'none';
-        });
-
-        // Cerrar modal al hacer clic fuera de él
-        window.addEventListener('click', (event) => {
-            if (event.target === modalNuevo) {
-                modalNuevo.style.display = 'none';
-            }
-        });
-
-        // Show/hide Ruta-specific fields based on category selection
-        categoriaSelect.addEventListener('change', (event) => {
-            if (event.target.value === 'ruta') {
-                rutaDetails.classList.remove('hidden');
-            } else {
-                rutaDetails.classList.add('hidden');
-            }
-        });
-    </script>
 </body>
 </html>

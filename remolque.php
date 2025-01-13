@@ -1,43 +1,10 @@
+
 <?php
-require_once 'modelo/conexion.php';
-
-// Configuración de paginación y ordenamiento
-$per_page = isset($_GET['per_page']) ? (int)$_GET['per_page'] : 10;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'id_remolque';
-$order = isset($_GET['order']) && strtoupper($_GET['order']) === 'ASC' ? 'ASC' : 'DESC';
-$search = isset($_GET['search']) ? $_GET['search'] : '';
-
-// Calcular offset para la paginación
-$offset = ($page - 1) * $per_page;
-
-// Consulta SQL base
-$sql = "SELECT * FROM remolque 
-        WHERE placas LIKE :search OR tipo_remolque LIKE :search OR subtipo_remolque LIKE :search
-        ORDER BY $sort $order
-        LIMIT :per_page OFFSET :offset";
-
-// Preparar y ejecutar la consulta
-$search_term = "%$search%";
-$stmt = $conn->prepare($sql);
-$stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
-$stmt->bindValue(':per_page', (int)$per_page, PDO::PARAM_INT);
-$stmt->bindValue(':offset', (int)$offset, PDO::PARAM_INT);
-$stmt->execute();
-$result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Obtener total de registros para la paginación
-$total_sql = "SELECT COUNT(*) as total 
-              FROM remolque 
-              WHERE placas LIKE :search OR tipo_remolque LIKE :search OR subtipo_remolque LIKE :search";
-
-$total_stmt = $conn->prepare($total_sql);
-$total_stmt->bindValue(':search', $search_term, PDO::PARAM_STR);
-$total_stmt->execute();
-$total_records = $total_stmt->fetch(PDO::FETCH_ASSOC)['total'];
-$total_pages = ceil($total_records / $per_page);
+require 'controlador/remolque.php';
 ?>
-
+<?php
+require 'dash.php';
+?>
 
 <!DOCTYPE html>
 <html lang="es">
@@ -45,14 +12,63 @@ $total_pages = ceil($total_records / $per_page);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de Remolques</title>
+    <script src="assets/js/dash.js"></script>
+   <link rel="stylesheet" href="assets/css/diseño.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="assets/css/clientes.css">
     <link rel="stylesheet" href="assets/css/servicios.css">
     <link rel="stylesheet" href="assets/css/modal.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+    <link rel="stylesheet" href="assets/css/diseño.css">
+   <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 <body>
+       <!-- Informacion del dashboard -->
+ <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/1.png" alt="Logo">
+            <span class="logo-text"></span>
+        </div>
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1 class="title">Detalles del Cliente</h1>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+                       <!-- Fin -->
 <main class="main-content">
         <div class="header animate-fade-in">
             <h1 class="title">Remolque</h1>
