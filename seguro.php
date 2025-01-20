@@ -8,6 +8,7 @@ require 'dash.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Listado de Seguros</title>
+    <script src="assets/js/dash.js"></script>
     <script src="assets/js/seguro.js"></script>
     <link rel="stylesheet" href="assets/css/camion.css">
     <link rel="stylesheet" href="assets/css/servicios.css">
@@ -67,7 +68,7 @@ require 'dash.php';
                        <!-- Fin -->
     <div class="table-container">
         <div class="header">
-            <h1 class="title">Listado de Seguros</h1>
+      
             <div class="actions">
                 <button id="btnNuevoSeguro" class="btn btn-primary">Agregar Seguro</button>
             </div>

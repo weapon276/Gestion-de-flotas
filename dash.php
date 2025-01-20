@@ -46,7 +46,7 @@ function verificarAcceso($user_type, $paginasPermitidas) {
 // Definir páginas permitidas por tipo de usuario
 $paginasPermitidas = [
     'Admin' => ['inicioa.php', 'gestionar_usuarios.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
-    'Administrador' => ['inicioa.php', 'gestionar_usuarios.php', 'seguros.php', 'camion.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
+    'Administrador' => ['inicioa.php', 'usuarios.php', 'gestionar_usuarios.php', 'seguros.php', 'camion.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
     'Contabilidad' => ['gestionar_cotizacion.php', 'clientes.php', 'servicios.php', 'seguro.php', 'dolly.php', 'infoc.php', 'seguros.php', 'cotizacion.php', 'cotizaciont.php', 'rutas.php', 'camion.php', 'alta_cliente.php', 'facturas.php', 'gestionar_facturas.php', 'remolque.php', 'index.php', 'viaje.php', 'cliente.php', 'gestion_camiones.php'],
     'Recursos Humanos' => ['index.php', 'inicio.php', 'seguros.php', 'gestionar_empleados.php', 'registrar_empleado.php'],
     'Operador' => ['index.php', 'viaje.php'],
@@ -76,23 +76,22 @@ function generarMenu($user_type) {
             break;
         case 'Contabilidad':
             $menu .= generarSubmenu('Clientes', [
-                ['../modelo/viaje.php', 'fas fa-file-invoice-dollar', 'Inicio'],
-                ['cliente.php', 'fas fa-file-invoice', 'Clientes'],
-                ['../controlador/alta_cliente.php', 'fas fa-user-plus', 'Registrar Cliente'],
-                ['controlador/rutas.php', 'fas fa-map-marked-alt', 'Rutas']
+                ['rutas.php', 'fas fa-file-invoice-dollar', 'Inicio'],
+                ['clientes.php', 'fas fa-file-invoice', 'Clientes'],
+                ['rutas.php', 'fas fa-map-marked-alt', 'Rutas']
             ]);
             $menu .= generarSubmenu('Cotizaciones', [
-                ['gestionar_cotizacion.php', 'fas fa-calculator', 'Cotizaciones'],
-                ['modelo/cotizacion.php', 'fas fa-file-alt', 'Nueva Cotización']
+                ['cotizacion.php', 'fas fa-calculator', 'Cotizaciones'],
+                ['cotizacion.php', 'fas fa-file-alt', 'Nueva Cotización']
             ]);
             $menu .= generarSubmenu('Facturas', [
-                ['../controlador/gestionar_facturas.php', 'fas fa-file-invoice', 'Facturas'],
+                ['infoc.php', 'fas fa-file-invoice', 'Facturas'],
                 ['vista/facturas.php', 'fas fa-receipt', 'Nueva Factura']
             ]);
             $menu .= generarSubmenu('Camiones', [
-                ['../vista/gestion_camiones.php', 'fas fa-truck', 'Camiones'],
-                ['../modelo/remolque.php', 'fas fa-truck-moving', 'Remolques'],
-                ['../modelo/seguro.php', 'fas fa-truck-moving', 'Seguro']
+                ['camion.php', 'fas fa-truck', 'Camiones'],
+                ['remolque.php', 'fas fa-truck-moving', 'Remolques'],
+                ['seguro.php', 'fas fa-truck-moving', 'Seguro']
             ]);
             break;
         case 'Recursos Humanos':

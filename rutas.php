@@ -1,25 +1,8 @@
 <?php
-include 'modelo/conexion.php';
-
-// Fetch data from the database
-$sql = "SELECT v.*, c.Unidad AS NombreCamion, o.Nombre AS NombreOperador, cl.Nombre AS NombreCliente, r.Nombrer AS NombreRuta, co.ID_Cotizacion AS NumeroCotizacion
-        FROM viaje v
-        LEFT JOIN camion c ON v.ID_Camion = c.ID_Camion
-        LEFT JOIN operador o ON v.ID_Operador = o.ID_Operador
-        LEFT JOIN cliente cl ON v.ID_Cliente = cl.ID_Cliente
-        LEFT JOIN rutas r ON v.Fk_IdRutas = r.ID_Ruta
-        LEFT JOIN cotizacion co ON v.Fk_IdCotizacion = co.ID_Cotizacion
-        ORDER BY v.fecha_inicio DESC";
-
-try {
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    // Obtener resultados como un array asociativo
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Error en la consulta: " . $e->getMessage());
-}
-
+require 'controlador/rutas.php';
+?>
+<?php
+require 'dash.php';
 ?>
 
 <!DOCTYPE html>
@@ -28,19 +11,70 @@ try {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cotizaciones y Viajes en Curso</title>
+    <script src="assets/js/dash.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
     <link rel="stylesheet" href="assets/css/clientes.css">
     <link rel="stylesheet" href="assets/css/servicios.css">
     <link rel="stylesheet" href="assets/css/modal.css">
+    <link rel="stylesheet" href="assets/css/diseño.css">
+    <link rel="stylesheet" href="assets/css/dashboard.css">
+   <link rel="stylesheet" href="assets/css/dashboard.css">
+   <link rel="stylesheet" href="assets/css/clientes.css">
+   <link rel="stylesheet" href="assets/css/diseño.css">
     <style>
    
     </style>
 </head>
 <body>
+       <!-- Informacion del dashboard -->
+ <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/1.png" alt="Logo">
+            <span class="logo-text"></span>
+        </div>
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1 class="title"><i class="fas fa-truck"></i> Cotizaciones y Viajes en Curso</h1>
+                </div>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+                       <!-- Fin -->
     <main class="main-content">
         <div class="header">
-            <h1 class="title"><i class="fas fa-truck"></i> Cotizaciones y Viajes en Curso</h1>
+        <h1 class="title"></h1>
         </div>
 
         <div class="search-bar">
@@ -83,8 +117,7 @@ try {
     <td><?= htmlspecialchars($row["Contenedores"]) ?></td>
     <td><?= htmlspecialchars($row["Toneladas"]) ?></td>
     <td>$<?= number_format(htmlspecialchars($row["Gastos"]), 2) ?></td>
-</tr>
-          <span class='status-badge status-<?= strtolower(str_replace(' ', '-', $row["Status"])) ?>'>
+    <td><span class='status-badge status-<?= strtolower(str_replace(' ', '-', $row["Status"])) ?>'>
                             <?= htmlspecialchars($row["Status"]) ?>
                         </span>
                  
@@ -98,6 +131,7 @@ try {
                             </button>
                         </div>
                     </td>
+                    </tr>
             <?php endforeach; ?>
         <?php else: ?>
             <tr>
@@ -108,33 +142,5 @@ try {
 </table>
         </div>
     </main>
-
-    <script>
-        function searchQuotations() {
-            const searchTerm = document.querySelector('.search-input').value.toLowerCase();
-            const rows = document.querySelectorAll('.quotations-table tbody tr');
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(searchTerm) ? '' : 'none';
-            });
-        }
-
-        function editQuotation(id) {
-            console.log('Editing quotation:', id);
-            // Implement edit functionality
-        }
-
-        function deleteQuotation(id) {
-            if (confirm('¿Está seguro de que desea eliminar este viaje?')) {
-                console.log('Deleting quotation:', id);
-                // Implement delete functionality
-            }
-        }
-
-        function changePage(direction) {
-            console.log('Changing page:', direction);
-            // Implement pagination functionality
-        }
-    </script>
 </body>
 </html>
