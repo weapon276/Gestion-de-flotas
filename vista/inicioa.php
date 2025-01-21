@@ -1,6 +1,6 @@
 <?php
-include 'conexion.php';
-include 'index.php';
+include '../modelo/conexion.php';
+include '../index.php';
 // Consulta para obtener datos de actas_administrativas
 $sql_actas = "SELECT Fecha_Acta, COUNT(*) as count FROM actas_administrativas GROUP BY Fecha_Acta";
 $result_actas = $conn->query($sql_actas);

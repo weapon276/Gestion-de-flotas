@@ -34,8 +34,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // Redirigir al dashboard según el tipo de usuario
                 if ($user['fk_typeuser'] == 4) {
                     header("Location: index.php");
-                } elseif ($user['fk_typeuser'] == 3) {
-                    header("Location: index.php");
+                } elseif ($user['fk_typeuser'] == 1) {
+                    header("Location: vista/inicioa.php");
                 } else {
                     header("Location: index.php");
                 }
