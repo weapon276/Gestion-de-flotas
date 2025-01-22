@@ -13,9 +13,9 @@ require '../dash.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="../assets/js/dash.js"></script>
     <link rel="stylesheet" href="../assets/css/usuario.css">
+    <link rel="stylesheet" href="../assets/css/botones.css">
    <link rel="stylesheet" href="../assets/css/diseño.css">
    <link rel="stylesheet" href="../assets/css/dashboard.css">
-    <link rel="stylesheet" href="../assets/css/usuario.css">
     <link rel="stylesheet" href="../assets/css/rservicios.css">
     <link rel="stylesheet" href="../assets/css/modal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
@@ -77,8 +77,8 @@ require '../dash.php';
     <div class="container">
         <div class="header">
            
-            <button class="btn btn-primary" onclick="showModal('modalAgregarUsuario')">
-                <i class="fas fa-plus"></i> Agregar Usuario
+            <button class="btn btn-secondary" onclick="showModal('modalAgregarUsuario')">
+                <i class="far fa-address-book"></i> Agregar Usuario
             </button>
             <button class="btn btn-secondary" onclick="showModal('modalUsuariosInactivos')">
                 <i class="fas fa-user-slash"></i> Ver Usuarios Inactivos
@@ -106,16 +106,25 @@ require '../dash.php';
                             <span class="status-badge status-active">Activo</span>
                         </td>
                         <td class="actions">
-                            <button class="btn btn-warning" onclick="showModal('modalSuspenderUsuario', <?php echo $usuario['id']; ?>)">
-                                <i class="fas fa-pause"></i>
-                            </button>
-                            <button class="btn btn-danger" onclick="showModal('modalEliminarUsuario', <?php echo $usuario['id']; ?>)">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                            <button class="btn btn-primary" onclick="showModal('modalModificarUsuario', <?php echo $usuario['id']; ?>, '<?php echo $usuario['username']; ?>', '<?php echo $usuario['vCorreo']; ?>', <?php echo $usuario['fk_typeuser']; ?>)">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                        </td>
+    <div class="tooltip">
+        <button class="icon-button" onclick="showModal('modalSuspenderUsuario', <?php echo $usuario['id']; ?>)" title="Suspender">
+            <i class="fas fa-pause"></i>
+        </button>
+        <span class="tooltiptext">Suspender</span>
+    </div>
+    <div class="tooltip">
+        <button class="icon-button" onclick="showModal('modalEliminarUsuario', <?php echo $usuario['id']; ?>)" title="Eliminar">
+            <i class="fas fa-trash"></i>
+        </button>
+        <span class="tooltiptext">Eliminar</span>
+    </div>
+    <div class="tooltip">
+        <button class="icon-button" onclick="showModal('modalModificarUsuario', <?php echo $usuario['id']; ?>, '<?php echo $usuario['username']; ?>', '<?php echo $usuario['vCorreo']; ?>', <?php echo $usuario['fk_typeuser']; ?>)" title="Modificar">
+            <i class="fas fa-edit"></i>
+        </button>
+        <span class="tooltiptext">Modificar</span>
+    </div>
+</td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>

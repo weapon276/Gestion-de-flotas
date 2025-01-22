@@ -54,7 +54,7 @@ switch ($user_type) {
         $paginasPermitidas = ['inicioa.php', 'gestionar_usuarios.php', 'gestionar_empleado.php', 'gestionar_camiones.php'];
         break;
     case 'Administrador':
-        $paginasPermitidas = ['inicioa.php', 'gestionar_usuarios.php', 'gestionar_empleado.php', 'gestionar_camiones.php'];
+        $paginasPermitidas = ['inicioa.php', 'gestionar_usuarios.php', 'gestionar_operadores.php', 'gestionar_clientes.php', 'gestionar_camiones.php'];
         break;
     case 'Contabilidad':
         $paginasPermitidas = ['gestionar_cotizacion.php','cotizacion.php','rutas.php','alta_cliente.php','facturas.php','gestionar_facturas.php','remolque.php','index.php','viaje.php', 'cliente.php', 'gestion_camiones.php'];

@@ -46,7 +46,7 @@ function verificarAcceso($user_type, $paginasPermitidas) {
 // Definir páginas permitidas por tipo de usuario
 $paginasPermitidas = [
     'Admin' => ['inicioa.php', 'gestionar_usuarios.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
-    'Administrador' => ['index.php', 'inicioa.php', 'usuarios.php', 'empleado.php', 'seguros.php', 'camion.php', 'gestionar_empleado.php', 'gestionar_camiones.php'],
+    'Administrador' => ['index.php', 'inicioa.php', 'clientes.php', 'usuarios.php', 'empleado.php', 'seguros.php', 'camion.php', 'gestionar_empleado.php', 'operadores.php', 'camiones.php'],
     'Contabilidad' => ['gestionar_cotizacion.php', 'clientes.php', 'servicios.php', 'seguro.php', 'dolly.php', 'infoc.php', 'seguros.php', 'cotizacion.php', 'cotizaciont.php', 'rutas.php', 'camion.php', 'alta_cliente.php', 'facturas.php', 'gestionar_facturas.php', 'remolque.php', 'index.php', 'viaje.php', 'cliente.php', 'gestion_camiones.php'],
     'Recursos Humanos' => ['index.php', 'inicio.php', 'seguros.php', 'gestionar_empleados.php', 'registrar_empleado.php'],
     'Operador' => ['index.php', 'viaje.php'],
@@ -66,13 +66,13 @@ function generarMenu($user_type) {
             break;
         case 'Administrador':
             $menu .= "<li class='nav-item'><a href='inicioa.php' class='nav-link'>🏠 Inicio</a></li>";
-            $menu .= "<li class='nav-item'><a href='../controlador/gestionar_usuarios.php' class='nav-link'>👥 Usuarios</a></li>";
-            $menu .= "<li class='nav-item'><a href='../vista/empleado.php' class='nav-link'>👔 Gestionar Empleados</a></li>";
-            $menu .= "<li class='nav-item'><a href='../controlador/gestionar_camiones.php' class='nav-link'>🚚 Gestionar camiones</a></li>";
-            $menu .= "<li class='nav-item'><a href='../controlador/gestionar_operadores.php' class='nav-link'>🧑‍✈️ Gestionar operadores</a></li>";
-            $menu .= "<li class='nav-item'><a href='../controlador/gestionar_clientes.php' class='nav-link'>🤝 Gestionar clientes</a></li>";
-            $menu .= "<li class='nav-item'><a href='../controlador/gestionar_viajes.php' class='nav-link'>🗺️ Gestionar viajes</a></li>";
-            $menu .= "<li class='nav-item'><a href='../controlador/generar_reportes.php' class='nav-link'>📊 Generar reportes</a></li>";
+            $menu .= "<li class='nav-item'><a href='../vista/usuarios.php' class='nav-link'>👥  Usuarios</a></li>";
+            $menu .= "<li class='nav-item'><a href='../vista/empleado.php' class='nav-link'>👔  Gestionar Empleados</a></li>";
+            $menu .= "<li class='nav-item'><a href='../vista/camiones.php' class='nav-link'>🚚  Gestionar camiones</a></li>";
+            $menu .= "<li class='nav-item'><a href='../vista/gestionar_operadores.php' class='nav-link'>🧑 Gestionar operadores</a></li>";
+            $menu .= "<li class='nav-item'><a href='../vista/clientes.php' class='nav-link'>🤝  Gestionar clientes</a></li>";
+            $menu .= "<li class='nav-item'><a href='../controlador/gestionar_viajes.php' class='nav-link'>🗺️  Gestionar viajes</a></li>";
+            $menu .= "<li class='nav-item'><a href='../controlador/generar_reportes.php' class='nav-link'>📊  Generar reportes</a></li>";
             break;
         case 'Contabilidad':
             $menu .= generarSubmenu('Clientes', [
