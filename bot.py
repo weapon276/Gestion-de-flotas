@@ -2,7 +2,7 @@ import telebot
 from telebot.types import KeyboardButton, ReplyKeyboardMarkup
 
 # Inicializar el bot con el token de Telegram proporcionado
-bot = telebot.TeleBot("6931338689:AAELh2LHf-hRl_8NY6nD7dTHqBrwKd1Rems")
+bot = telebot.TeleBot("7476010619:AAFY7L21x1jUjpW_9gU4NbnWIgYOyuZPFj0")
 
 
 # Definir un gestor de mensajes para los comandos /start y /help.

@@ -1,133 +1,125 @@
+
 <?php
-session_start();
-include 'conexion.php';
-include 'index.php';
-
-// Verificar si el usuario está autenticado y tiene permisos de administrador
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] != 'Administrador') {
-    header("Location: login.php");
-    exit();
-}
-
-// Función para obtener todos los datos de una tabla específica
-function obtenerDatos($conn, $tabla) {
-    $sql = "SELECT * FROM $tabla";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-// Función para generar un archivo XML
-function generarXML($datos, $nombreArchivo) {
-    $dom = new DOMDocument('1.0', 'utf-8');
-    $root = $dom->createElement('data');
-    foreach ($datos as $fila) {
-        $item = $dom->createElement('item');
-        foreach ($fila as $clave => $valor) {
-            $element = $dom->createElement($clave, htmlspecialchars($valor));
-            $item->appendChild($element);
-        }
-        $root->appendChild($item);
-    }
-    $dom->appendChild($root);
-    $dom->save($nombreArchivo);
-}
-
-// Función para generar un archivo PDF usando FPDF
-function generarPDF($datos, $nombreArchivo, $titulo) {
-    require('fpdf.php');
-    $pdf = new FPDF();
-    $pdf->AddPage();
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(0, 10, $titulo, 0, 1, 'C');
-
-    // Crear encabezados
-    $pdf->SetFont('Arial', 'B', 10);
-    foreach (array_keys($datos[0]) as $columna) {
-        $pdf->Cell(40, 10, $columna, 1);
-    }
-    $pdf->Ln();
-
-    // Crear filas
-    $pdf->SetFont('Arial', '', 10);
-    foreach ($datos as $fila) {
-        foreach ($fila as $valor) {
-            $pdf->Cell(40, 10, $valor, 1);
-        }
-        $pdf->Ln();
-    }
-    $pdf->Output('F', $nombreArchivo);
-}
-
-// Función para obtener el historial completo de empleados
-function obtenerHistorial($conn) {
-    $tablas = ['empleado'];
-    $historial = [];
-    foreach ($tablas as $tabla) {
-        $historial[$tabla] = obtenerDatos($conn, $tabla);
-    }
-    return $historial;
-}
-
-// Verificar las acciones del formulario
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $tipo_reporte = $_POST['tipo_reporte'];
-    $formato = $_POST['formato'];
-
-    if ($tipo_reporte == 'historial') {
-        $datos = obtenerHistorial($conn);
-    } else {
-        $datos = obtenerDatos($conn, $tipo_reporte);
-    }
-
-    $timestamp = date('Ymd_His');
-    if ($formato == 'xml') {
-        $nombreArchivo = "reporte_{$tipo_reporte}_{$timestamp}.xml";
-        generarXML($datos, $nombreArchivo);
-    } elseif ($formato == 'pdf') {
-        $nombreArchivo = "reporte_{$tipo_reporte}_{$timestamp}.pdf";
-        generarPDF($datos, $nombreArchivo, "Reporte de " . ucfirst($tipo_reporte));
-    }
-
-    header("Content-Disposition: attachment; filename=$nombreArchivo");
-    header("Content-Type: application/octet-stream");
-    readfile($nombreArchivo);
-    unlink($nombreArchivo); // Eliminar el archivo después de la descarga
-    exit();
-}
+require '../dash.php';
+require '../controlador/reportes.php';
 ?>
-
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <title>Generar Reportes de Empleados</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<!-- Margen de tabla y menu lateral -->
-<div class="w3-main" style="margin-left:320px;margin-top:60px;">
-<!--Fin de margen -->
-<body>
-<div class="container mt-5">
-    <h1>Generar Reportes de Empleados</h1>
-    <form method="post">
-        <div class="mb-3">
-            <label for="tipo_reporte" class="form-label">Tipo de Reporte</label>
-            <select class="form-select" id="tipo_reporte" name="tipo_reporte" required>
-                <option value="empleado">Empleados</option>
-                <option value="historial">Historial Completo</option>
-            </select>
-        </div>
-        <div class="mb-3">
-            <label for="formato" class="form-label">Formato</label>
-            <select class="form-select" id="formato" name="formato" required>
-                <option value="xml">XML</option>
-                <option value="pdf">PDF</option>
-            </select>
-        </div>
-        <button type="submit" class="btn btn-primary">Generar Reporte</button>
-    </form>
-</div>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Reportes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="../assets/js/dash.js"></script>
+    <script src="../assets/js/camiones.js"></script>
+    <link rel="stylesheet" href="../assets/css/usuario.css">
+    <link rel="stylesheet" href="../assets/css/botones.css">
+   <link rel="stylesheet" href="../assets/css/diseño.css">
+   <link rel="stylesheet" href="../assets/css/dashboard.css">
+    <link rel="stylesheet" href="../assets/css/rservicios.css">
+    <link rel="stylesheet" href="../assets/css/modal.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    <link rel="stylesheet" href="../assets/css/reporte.css">
+    <link rel="stylesheet" href="../assets/css/diseño.css">
+    <style>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </style>
+</head>
+<body>
+      <!-- Informacion del dashboard -->
+      <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <img src="assets/img/1.png" alt="Logo">
+            <span class="logo-text"></span>
+        </div>
+
+        <div class="welcome-message">
+            Bienvenido(A), <?php echo htmlspecialchars($nombreEmpleado); ?>
+        </div>
+
+        <nav class="nav-section">
+            <div class="nav-title"><p>Area: <?php echo htmlspecialchars($user_type); ?></p></div>
+            <?php echo generarMenu($user_type); ?>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+            <div class="top-bar">
+                <div class="top-actions">
+                <h1>Generar Reportes</h1>
+                    <div class="notifications-dropdown">
+                        <button class="btn btn-secondary" onclick="toggleNotifications()">
+                            <span>🔔</span>
+                        </button>
+                        <div class="notifications-panel" id="notificationsPanel">
+                            <div class="user-menu-item">No tienes mensajes sin leer</div>
+                            <div class="user-menu-item">Ver todas</div>
+                        </div>
+                    </div>
+
+                    <div class="user-menu">
+                        <button class="btn btn-secondary" onclick="toggleUserMenu()">
+                            <span>👤</span>
+                            <span><?php echo htmlspecialchars($nombreEmpleado . ' ' . $apellidoEmpleado); ?></span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <div class="user-menu-item" onclick="toggleDarkMode()">Dark mode</div>
+                            <div class="user-menu-item" onclick="logout()">Cerrar sesión</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+                       <!-- Fin -->
+    <div class="container">
+    
+        <form method="post">
+            <div class="form-group">
+                <label for="tipo_reporte">Tipo de Reporte</label>
+                <select id="tipo_reporte" name="tipo_reporte" required>
+                    <option value="cliente">Clientes</option>
+                    <option value="viaje">Viajes</option>
+                    <option value="operador">Operadores</option>
+                    <option value="camion">Camiones</option>
+                    <option value="usuarios">Usuarios</option>
+                    <option value="factura">Facturas</option>
+                    <option value="liquidacion">Liquidaciones</option>
+                    <option value="log_movimientos">Log de Movimientos</option>
+                    <option value="historial">Historial Completo</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="formato">Formato</label>
+                <select id="formato" name="formato" required>
+                    <option value="xml">XML</option>
+                    <option value="pdf">PDF</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha de Inicio</label>
+                <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+            </div>
+            <div class="form-group">
+                <label for="fecha_fin">Fecha de Fin</label>
+                <input type="date" id="fecha_fin" name="fecha_fin" required>
+            </div>
+            <button type="submit" class="btn">
+                <i class="fas fa-file-export"></i> Generar Reporte
+            </button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha_fin').value = today;
+            
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            document.getElementById('fecha_inicio').value = oneMonthAgo.toISOString().split('T')[0];
+        });
+    </script>
 </body>
 </html>
+
